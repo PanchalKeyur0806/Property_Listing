@@ -13,25 +13,20 @@ const propertySchema = Joi.object({
 });
 
 export const getAllProperty = catchAsync(async (req, res, next) => {
-  const { name, type, price } = req.query;
+  const { name, type, location } = req.query;
   const queryObj = {};
 
   if (name) {
     queryObj.name = { $regex: name, $options: "i" };
   }
-
   if (type) {
     queryObj.type = { $regex: type, $options: "i" };
   }
+  if (location) {
+    queryObj.location = { $regex: location, $options: "i" };
+  }
 
-  //   sort options
-  const sortOptions = {
-    new: "-createdAt",
-    old: "createdAt",
-  };
-  const sortKey = sortOptions.sort || sortOptions.new;
-
-  const properties = await PropertyModel.find(queryObj).sort(sortKey);
+  const properties = await PropertyModel.find(queryObj).sort("-createdAt");
 
   res.status(200).json({
     status: "success",

@@ -1,4 +1,3 @@
-import React from "react";
 import { useEffect } from "react";
 import useFetchData from "../hooks/fetchDataHook";
 import {
@@ -8,6 +7,7 @@ import {
   MapPinned,
   Search,
   Type,
+  X,
 } from "lucide-react";
 import SearchBtnLayout from "./SearchBtnLayout";
 import { useState } from "react";
@@ -15,27 +15,77 @@ import { useActionState } from "react";
 import InputFields from "./InputFields";
 import usePostData from "../hooks/postDataHook";
 import LoadingBar from "react-top-loading-bar";
+import { useSearchParams } from "react-router-dom";
 
 const ListProperties = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [data, setData] = useState([]);
 
+  const [nameField, setNameField] = useState("");
+  const [typeField, setTypeField] = useState("");
+  const [locationField, setLocationField] = useState("");
+
   const [, action, pending] = useActionState(handleFormData, null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   //   custom hook
   const [getData, , progress] = useFetchData();
-  const [postData, postError, postProgress] = usePostData();
+  const [postData, postError] = usePostData();
+
+  const name = searchParams.get("name") || "";
+  const type = searchParams.get("type") || "";
+  const location = searchParams.get("location") || "";
+
+  //   function for building base search url
+  function buildUrl() {
+    const params = new URLSearchParams();
+
+    if (name) params.set("name", name);
+    if (type && type !== "all") params.set("type", type);
+    if (location) params.set("location", location);
+
+    return `http://localhost:5000/api/property?${params.toString()}`;
+  }
+
+  //   function for handling search params
+  function handleParams() {
+    const name = nameField;
+    const location = locationField;
+    const type = typeField;
+
+    updateSearchParams({ name, location, type });
+  }
+
+  //   function for updating the search params
+  function updateSearchParams(params) {
+    const currentParams = new URLSearchParams(params);
+
+    Object.keys(params).map((key) => {
+      if (params[key] && params[key] !== "all")
+        currentParams.set(key, params[key]);
+      else currentParams.delete(key);
+    });
+
+    // set search params
+    setSearchParams(currentParams);
+  }
+
+  //   cancel search
+  const handleCancelSearch = () => {
+    updateSearchParams({ name: "", type: "all", location: "" });
+  };
 
   useEffect(() => {
     async function fetchData() {
-      const res = await getData("http://localhost:5000/api/property");
+      const res = await getData(buildUrl());
       setData(res);
     }
 
     fetchData();
-  }, []);
+  }, [searchParams]);
 
+  //   create new property
   async function handleFormData(preData, formData) {
     const name = formData.get("name");
     const type = formData.get("type");
@@ -89,11 +139,75 @@ const ListProperties = () => {
             name={"Add Propterty"}
             onClick={handleFormOpen}
           />
+
+          <SearchBtnLayout
+            isActive={formOpen}
+            icon={<X />}
+            name={"Cancel Search"}
+            onClick={handleCancelSearch}
+          />
         </div>
 
         {/* Showing searchMenu or Form Menu */}
+        {searchOpen === true && (
+          <div className="my-6 px-3 py-2 shadow rounded-md">
+            <h1 className="px-3 text-xl font-medium  mb-5">Search</h1>
+
+            <div className="flex flex-col gap-2 text-sm">
+              <label htmlFor="name">Search By Name</label>
+              <input
+                type="text"
+                name="name"
+                id="name"
+                onChange={(e) => setNameField(e.target.value)}
+                placeholder="search by name..."
+                className="focus:outline-none shadow px-5 py-2 bg-gray-100 text-gray-500"
+              />
+            </div>
+
+            <div className="grid  grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+              <div className="w-full">
+                <p className="text-sm mb-2">Search By Type</p>
+                <select
+                  name="type"
+                  id="type"
+                  onChange={(e) => setTypeField(e.target.value)}
+                  className="bg-gray-100 focus:outline-none px-5 py-2 w-full rounded-md shadow text-gray-500"
+                >
+                  <option value="all">all</option>
+                  <option value="Residential">Residential</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Industrial">Industrial</option>
+                  <option value="Land">Land</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm">
+                <label htmlFor="location">Search By Location</label>
+                <input
+                  onChange={(e) => setLocationField(e.target.value)}
+                  type="text"
+                  name="location"
+                  id="location"
+                  placeholder="search by location..."
+                  className="focus:outline-none shadow px-5 py-2 bg-gray-100 text-gray-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <button
+                onClick={handleParams}
+                className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-800 active:scale-95 transition-transform duration-100 ease-in-out cursor-pointer"
+              >
+                View Properties
+              </button>
+            </div>
+          </div>
+        )}
+
         {formOpen === true && (
-          <div className="mt-10 px-3">
+          <div className="mt-10 px-3 shadow rounded-md py-3">
             <form action={action}>
               {/* Form Heading */}
               <div className="mb-5">

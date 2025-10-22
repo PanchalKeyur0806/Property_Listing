@@ -3,7 +3,25 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { AppError } from "../utils/AppError.js";
 
 export const getAllProperty = catchAsync(async (req, res, next) => {
-  const properties = await PropertyModel.find();
+  const { name, type, price, sort } = req.query;
+  const queryObj = {};
+
+  if (name) {
+    queryObj.name = { $regex: name, $options: "i" };
+  }
+
+  if (type) {
+    queryObj.type = { $regex: type, $options: "i" };
+  }
+
+  //   sort options
+  const sortOptions = {
+    new: "-createdAt",
+    old: "createdAt",
+  };
+  const sortKey = sortOptions.sort || sortOptions.new;
+
+  const properties = await PropertyModel.find(queryObj).sort(sortKey);
 
   res.status(200).json({
     status: "success",

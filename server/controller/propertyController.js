@@ -1,9 +1,19 @@
+import Joi from "joi";
+
 import { PropertyModel } from "../model/propertyModel.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { AppError } from "../utils/AppError.js";
 
+const propertySchema = Joi.object({
+  name: Joi.string().required().trim().min(5).max(20),
+  type: Joi.string().required().trim(),
+  price: Joi.number().required(),
+  description: Joi.string().required().trim().min(10).max(200),
+  location: Joi.string().required().trim(),
+});
+
 export const getAllProperty = catchAsync(async (req, res, next) => {
-  const { name, type, price, sort } = req.query;
+  const { name, type, price } = req.query;
   const queryObj = {};
 
   if (name) {
@@ -30,7 +40,12 @@ export const getAllProperty = catchAsync(async (req, res, next) => {
 });
 
 export const createProperty = catchAsync(async (req, res, next) => {
-  const { name, type, price, description, location } = req.body;
+  const { error } = propertySchema.validate(req.body);
+  if (error) {
+    return next(new AppError(error.details[0].message, 400));
+  }
+
+  const { name, price, description, type, location } = req.body;
 
   const property = await PropertyModel.create({
     name,

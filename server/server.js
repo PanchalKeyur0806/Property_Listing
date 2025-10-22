@@ -8,5 +8,5 @@ mongoose
   .catch((error) => console.log("DB failed to connect"));
 
 app.listen(process.env.PORT, () =>
-  console.log("Server is listing on port ", process.env.PORT)
+  console.log(`server is running on port http://localhost:${process.env.PORT}`)
 );

@@ -5,10 +5,10 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { AppError } from "../utils/AppError.js";
 
 const propertySchema = Joi.object({
-  name: Joi.string().required().trim().min(5).max(20),
+  name: Joi.string().required().trim(),
   type: Joi.string().required().trim(),
   price: Joi.number().required(),
-  description: Joi.string().required().trim().min(10).max(200),
+  description: Joi.string().required().trim(),
   location: Joi.string().required().trim(),
 });
 

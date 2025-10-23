@@ -165,7 +165,7 @@ const ListProperties = () => {
           />
 
           <SearchBtnLayout
-            isActive={formOpen}
+            isActive={false}
             icon={<X />}
             name={"Cancel Search"}
             onClick={handleCancelSearch}
@@ -391,7 +391,7 @@ const ListProperties = () => {
 
         {/* Model Component */}
         {modelOpen && selectedProperty && (
-          <div className="fixed inset-0  flex items-center justify-center bg-black/10">
+          <div className="fixed inset-0  flex items-center justify-center bg-black/30">
             <div className="w-[95%] sm:w-[600px] min-h-[400px] mx-auto bg-white rounded-sm px-3 py-2 shadow-lg ">
               {/* Heading  */}
               <div className="text-xl font-medium flex justify-between">

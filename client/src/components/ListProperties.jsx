@@ -1,11 +1,15 @@
 import { useEffect } from "react";
 import useFetchData from "../hooks/fetchDataHook";
 import {
+  Building,
   CirclePlus,
   DollarSign,
+  House,
   Info,
+  LocateFixed,
   MapPinned,
   Search,
+  TimerIcon,
   Type,
   X,
 } from "lucide-react";
@@ -20,7 +24,9 @@ import { useSearchParams } from "react-router-dom";
 const ListProperties = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [modelOpen, setModelOpen] = useState(false);
   const [data, setData] = useState([]);
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   const [nameField, setNameField] = useState("");
   const [typeField, setTypeField] = useState("");
@@ -92,19 +98,37 @@ const ListProperties = () => {
     const price = formData.get("price");
     const description = formData.get("description");
     const location = formData.get("location");
+    const propertyImg = formData.get("propertyImg");
 
-    const res = await postData("http://localhost:5000/api/property", {
-      name,
-      type,
-      price,
-      description,
-      location,
-    });
+    const formPayload = new FormData();
+    formPayload.append("name", name);
+    formPayload.append("type", type);
+    formPayload.append("price", price);
+    formPayload.append("description", description);
+    formPayload.append("location", location);
+    formPayload.append("propertyImg", propertyImg);
+
+    const res = await postData(
+      "http://localhost:5000/api/property",
+      formPayload
+    );
 
     if (res?.data) {
       setData((prev) => [res.data, ...prev]);
     }
   }
+
+  //   handle model open
+  const handleModelOpen = (property) => {
+    setSelectedProperty(property);
+    setModelOpen(true);
+  };
+
+  // handle modelClose
+  const handleModelClose = () => {
+    setSelectedProperty(null);
+    setModelOpen(false);
+  };
 
   //   handle searchOpen
   const handleSearchOpen = () => {
@@ -119,7 +143,7 @@ const ListProperties = () => {
   return (
     <>
       <LoadingBar color="#0509fa" progress={progress} />
-      <section className="p-3 md:px-10 md:py-10 max-w-[1000px] mx-auto font-open-sans">
+      <section className="p-3 md:px-10 md:py-10 max-w-[1000px] mx-auto font-open-sans relative">
         {/* Heading */}
         <div className="font-open-sans text-2xl font-bold">
           <h1>Mini Property Listing Dashboard</h1>
@@ -208,7 +232,7 @@ const ListProperties = () => {
 
         {formOpen === true && (
           <div className="mt-10 px-3 shadow rounded-md py-3">
-            <form action={action}>
+            <form action={action} encType="multipart/form-data">
               {/* Form Heading */}
               <div className="mb-5">
                 <h1 className="text-xl font-medium">Add Property</h1>
@@ -249,6 +273,18 @@ const ListProperties = () => {
                   inputType={"text"}
                   inputName={"location"}
                   inputId={"location"}
+                />
+              </div>
+
+              {/* File upload */}
+              <div className="flex flex-col gap-4">
+                <label htmlFor="propertyImg">Upload Img</label>
+                <input
+                  type="file"
+                  name="propertyImg"
+                  id="propertyImg"
+                  placeholder="Please upload your img here"
+                  className="focus:outline-none shadow px-5 py-2 bg-gray-100 text-gray-500"
                 />
               </div>
 
@@ -330,7 +366,10 @@ const ListProperties = () => {
 
                 {/* Button */}
                 <div className=" mt-5">
-                  <button className="w-full px-5 py-2 bg-blue-600 text-white rounded-lg  text-sm transition-transform duration-200 ease-in hover:bg-blue-800 hover:scale-103 active:scale-98 cursor-pointer">
+                  <button
+                    onClick={() => handleModelOpen(property)}
+                    className="w-full px-5 py-2 bg-blue-600 text-white rounded-lg  text-sm transition-transform duration-200 ease-in hover:bg-blue-800 hover:scale-103 active:scale-98 cursor-pointer"
+                  >
                     View Property
                   </button>
                 </div>
@@ -338,8 +377,83 @@ const ListProperties = () => {
             ))}
           </div>
         ) : (
-          <div>
+          <div className="flex items-center justify-center text-2xl font-medium mt-10">
             <h1>NO Properties Found</h1>
+          </div>
+        )}
+
+        {/* Model Component */}
+        {modelOpen && selectedProperty && (
+          <div className="fixed inset-0  flex items-center justify-center bg-black/10">
+            <div className="w-[95%] sm:w-[600px] min-h-[400px] mx-auto bg-white rounded-sm px-3 py-2 shadow-lg ">
+              {/* Heading  */}
+              <div className="text-xl font-medium flex justify-between">
+                <h1>View Details</h1>
+                <p>
+                  <button onClick={handleModelClose} className="cursor-pointer">
+                    <X />
+                  </button>
+                </p>
+              </div>
+
+              {/* Content */}
+              <div>
+                <div className="flex flex-col md:flex-row gap-4 mt-5">
+                  {/* Img */}
+                  <div>
+                    <img
+                      src={`http://localhost:5000/uploads/${selectedProperty?.propertyImg}`}
+                      alt="Property Image"
+                      className="md:w-[300px] w-full h-[200px] object-cover rounded-xl"
+                    />
+                  </div>
+
+                  <div className="[&>p]:flex [&>p]:items-center [&>p]:gap-1">
+                    <p className="text-gray-600 font-medium">
+                      <span>
+                        <House size={20} />
+                      </span>
+                      <span>{selectedProperty.name}</span>
+                    </p>
+                    <p className="text-blue-700 text-sm mt-2">
+                      <span>
+                        <Building size={20} />
+                      </span>
+                      <span>{selectedProperty.type}</span>
+                    </p>
+                    <p className="text-green-700 text-sm mt-2">
+                      <span>
+                        <DollarSign size={20} />
+                      </span>
+                      <span>{selectedProperty.price}</span>
+                    </p>
+                    <p className="text-sky-800 text-sm mt-2">
+                      <span>
+                        <MapPinned size={20} />
+                      </span>
+                      <span>{selectedProperty.location}</span>
+                    </p>
+                    <p className="text-blue-500 text-sm mt-2">
+                      <span>
+                        <TimerIcon size={20} />
+                      </span>
+                      <span>{selectedProperty.createdAt.split("T")[0]}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* description */}
+                <div className="mt-4">
+                  <p className="text-slate-600 flex items-center gap-3">
+                    <span>
+                      <Info size={20} />
+                    </span>
+                    <span> {selectedProperty.description}</span>
+                  </p>
+                  <p></p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </section>

@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import path from "path";
 import cors from "cors";
 
 // routes
@@ -9,6 +10,7 @@ import { errorHandler } from "./controller/errorController.js";
 dotenv.config({ path: ".env" });
 
 const app = express();
+const __dirname = path.resolve();
 
 app.use(
   cors({
@@ -17,6 +19,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // routes
 app.use("/api/property/", propertyRoutes);

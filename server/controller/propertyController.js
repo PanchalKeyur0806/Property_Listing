@@ -40,6 +40,10 @@ export const createProperty = catchAsync(async (req, res, next) => {
     return next(new AppError(error.details[0].message, 400));
   }
 
+  // get the file
+  const fileName = req.file;
+  if (!fileName) return next(new AppError("file doesn't found", 404));
+
   const { name, price, description, type, location } = req.body;
 
   const property = await PropertyModel.create({
@@ -48,6 +52,7 @@ export const createProperty = catchAsync(async (req, res, next) => {
     description,
     type,
     location,
+    propertyImg: fileName.filename,
   });
   if (!property) return next(new AppError("Property is not created", 400));
 

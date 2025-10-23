@@ -249,13 +249,20 @@ const ListProperties = () => {
                 />
 
                 {/* type field */}
-                <InputFields
-                  labelId={"type"}
-                  labelName={"Enter Property Type"}
-                  inputType={"text"}
-                  inputName={"type"}
-                  inputId={"type"}
-                />
+                <div className="w-full">
+                  <p className="text-sm mb-2">Search By Type</p>
+                  <select
+                    name="type"
+                    id="type"
+                    className="bg-gray-100 focus:outline-none px-5 py-2 w-full rounded-md shadow text-gray-500"
+                  >
+                    <option value="">None</option>
+                    <option value="Residential">Residential</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Industrial">Industrial</option>
+                    <option value="Land">Land</option>
+                  </select>
+                </div>
 
                 {/* Price field */}
                 <InputFields
